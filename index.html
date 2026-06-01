@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hermes AI · Chat</title>
+  <style>
+    :root {
+      --ink: #0f1c22;
+      --paper: #fff7e8;
+      --gold: #f4d9a0;
+      --cyan: #a8e6e6;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      width: 100%; height: 100%;
+      background: var(--ink);
+      font-family: Georgia, "Times New Roman", "Songti SC", serif;
+      overflow: hidden;
+    }
+    #loading {
+      position: fixed; inset: 0; z-index: 10;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      background: var(--ink);
+      transition: opacity 0.5s;
+    }
+    #loading h1 {
+      font-size: 2.5rem; font-weight: 400;
+      color: var(--paper);
+      margin-bottom: 8px;
+    }
+    #loading p {
+      color: var(--cyan); font-size: 1.1rem;
+      margin-bottom: 24px;
+    }
+    #loading a {
+      color: var(--gold); text-decoration: none;
+      border: 2px solid var(--gold);
+      padding: 12px 28px;
+      transition: all 0.2s;
+    }
+    #loading a:hover {
+      background: var(--gold); color: var(--ink);
+    }
+    #frame {
+      width: 100%; height: 100%;
+      border: none; display: block;
+      opacity: 0; transition: opacity 0.5s;
+    }
+    #frame.loaded { opacity: 1; }
+    #loading.done { opacity: 0; pointer-events: none; }
+  </style>
+</head>
+<body>
+  <div id="loading">
+    <h1>Hermes AI</h1>
+    <p>Connecting to your private AI…</p>
+    <a id="direct-link" href="#" target="_blank">Open in new tab ↗</a>
+  </div>
+  <iframe id="frame" src="" allow="clipboard-read; clipboard-write"></iframe>
+  <script>
+    const TUNNEL = "gmt-hart-argument-relatives.trycloudflare.com";
+    const URL = "https://" + TUNNEL;
+    document.getElementById("direct-link").href = URL;
+    const frame = document.getElementById("frame");
+    const loading = document.getElementById("loading");
+
+    frame.src = URL;
+    frame.onload = () => {
+      frame.classList.add("loaded");
+      loading.classList.add("done");
+      setTimeout(() => { loading.style.display = "none"; }, 600);
+    };
+    // Fallback: show loading if iframe fails
+    setTimeout(() => {
+      if (!frame.classList.contains("loaded")) {
+        loading.querySelector("p").textContent = "Taking longer than expected…";
+      }
+    }, 5000);
+  </script>
+</body>
+</html>
