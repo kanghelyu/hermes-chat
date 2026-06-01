@@ -149,6 +149,12 @@
     <p>Connecting to your private AI…</p>
     <a id="direct-link" href="#" target="_blank">Open in new tab ↗</a>
   </div>
+  <div id="reconnect" style="display:none; position:fixed; inset:0; z-index:15;
+    background:var(--ink); flex-direction:column; align-items:center; justify-content:center;">
+    <h1 style="color:var(--paper); font-weight:400; margin-bottom:8px;">Hermes AI</h1>
+    <p style="color:var(--cyan); margin-bottom:4px;">Connection lost</p>
+    <p id="reconnect-status" style="color:var(--gold); font-size:0.9rem;">Reconnecting…</p>
+  </div>
   <iframe id="frame" src="" allow="clipboard-read; clipboard-write"></iframe>
 
   <script>
@@ -197,20 +203,75 @@
       startChat();
     }
 
-    // ── Chat ──
+    // ── Chat with auto-retry ──
+    const TUNNEL = "wellness-gay-browsers-balance.trycloudflare.com";
+    const URL = "https://" + TUNNEL;
+    let retryCount = 0;
+    let healthTimer = null;
+
     function startChat() {
-      const TUNNEL = "wellness-gay-browsers-balance.trycloudflare.com";
-      const URL = "https://" + TUNNEL;
       document.getElementById("direct-link").href = URL;
       const frame = document.getElementById("frame");
       const loading = document.getElementById("loading");
+      const reconnect = document.getElementById("reconnect");
+      const statusEl = document.getElementById("reconnect-status");
 
-      frame.src = URL;
+      function loadFrame() {
+        frame.src = URL;
+      }
+
       frame.onload = () => {
         frame.classList.add("loaded");
         loading.classList.add("done");
+        reconnect.style.display = "none";
+        retryCount = 0;
         setTimeout(() => { loading.style.display = "none"; }, 600);
+        startHealthCheck();
       };
+
+      // Detect iframe navigation failure
+      frame.onerror = () => handleDisconnect();
+
+      // Health check: periodic HEAD to tunnel
+      function startHealthCheck() {
+        if (healthTimer) clearInterval(healthTimer);
+        healthTimer = setInterval(async () => {
+          try {
+            const resp = await fetch(URL + "/", { method: "HEAD", mode: "no-cors", cache: "no-store" });
+          } catch (e) {
+            handleDisconnect();
+          }
+        }, 30000);
+      }
+
+      function handleDisconnect() {
+        if (healthTimer) { clearInterval(healthTimer); healthTimer = null; }
+        frame.classList.remove("loaded");
+        reconnect.style.display = "flex";
+        loading.style.display = "none";
+        retry();
+      }
+
+      async function retry() {
+        const delay = Math.min(2000 * Math.pow(2, retryCount), 15000);
+        statusEl.textContent = "Reconnecting" + ".".repeat((retryCount % 3) + 1);
+        retryCount++;
+
+        await new Promise(r => setTimeout(r, delay));
+
+        // Try to reach tunnel
+        try {
+          const resp = await fetch(URL + "/", { method: "HEAD", mode: "no-cors", cache: "no-store" });
+          statusEl.textContent = "Tunnel reachable, loading…";
+          loadFrame();
+        } catch (e) {
+          statusEl.textContent = "Retry " + retryCount + "…";
+          retry();
+        }
+      }
+
+      loadFrame();
+
       setTimeout(() => {
         if (!frame.classList.contains("loaded")) {
           loading.querySelector("p").textContent = "Taking longer than expected…";
