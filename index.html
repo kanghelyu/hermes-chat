@@ -107,15 +107,6 @@
       color: var(--cyan); font-size: 1.1rem;
       margin-bottom: 24px;
     }
-    #loading a {
-      color: var(--gold); text-decoration: none;
-      border: 2px solid var(--gold);
-      padding: 12px 28px;
-      transition: all 0.2s;
-    }
-    #loading a:hover {
-      background: var(--gold); color: var(--ink);
-    }
     /* ── iframe ── */
     #frame {
       width: 100%; height: 100%;
@@ -147,7 +138,6 @@
   <div id="loading">
     <h1>Hermes AI</h1>
     <p>Connecting to your private AI…</p>
-    <a id="direct-link" href="#" target="_blank">Open in new tab ↗</a>
   </div>
   <div id="reconnect" style="display:none; position:fixed; inset:0; z-index:15;
     background:var(--ink); flex-direction:column; align-items:center; justify-content:center;">
@@ -210,7 +200,6 @@
     let healthTimer = null;
 
     function startChat() {
-      document.getElementById("direct-link").href = URL;
       const frame = document.getElementById("frame");
       const loading = document.getElementById("loading");
       const reconnect = document.getElementById("reconnect");
